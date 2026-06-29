@@ -100,7 +100,7 @@ def evds_dibs_cek():
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def evds_enflasyon_cek():
-    baslangic = "01-01-2016"
+    baslangic = "01-01-2006"
     bitis = date.today().strftime("%d-%m-%Y")
     url = (
         "https://evds3.tcmb.gov.tr/igmevdsms-dis/series="
@@ -122,14 +122,21 @@ def evds_enflasyon_cek():
             v = item.get(key, "")
             return float(v.replace(",", ".")) if v and v != "" else None
 
+        def parse_tarih(tarih_str):
+            for fmt in ["%d-%m-%Y", "%Y-%m-%d", "%m-%Y", "%Y-%m"]:
+                try:
+                    return datetime.strptime(tarih_str, fmt).date()
+                except Exception:
+                    continue
+            return None
+
         satirlar = []
         for item in items:
             tarih_str = item.get("Tarih", "")
             if not tarih_str:
                 continue
-            try:
-                tarih = datetime.strptime(tarih_str, "%d-%m-%Y").date()
-            except Exception:
+            tarih = parse_tarih(tarih_str)
+            if tarih is None:
                 continue
             satirlar.append({
                 "Tarih":      tarih,
