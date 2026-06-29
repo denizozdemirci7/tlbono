@@ -94,7 +94,7 @@ def evds_dibs_cek():
     bitis     = date.today().strftime("%d-%m-%Y")
     url = (
         "https://evds3.tcmb.gov.tr/igmevdsms-dis/series="
-        "TP.DIBSPIYDEG.ST-TP.DIBSPIYDEG.S2"
+        "TP.DIBSPIYDEG.ST-TP.DIBSPIYDEG.S2-TP.DIBSPIYDEG.S121-TP.DIBSPIYDEG.S122-TP.DIBSPIYDEG.S129-TP.DIBSPIYDEG.S1234"
         f"&startDate={baslangic}&endDate={bitis}"
         "&type=json&frequency=2"
     )
@@ -107,27 +107,55 @@ def evds_dibs_cek():
         items = data.get("items", [])
         if not items:
             return None, "EVDS'den veri gelmedi."
+
+        def parse(item, key):
+            v = item.get(key, "")
+            return float(v.replace(",", ".")) if v and v != "" else None
+
         satirlar = []
         for item in items:
             tarih_str = item.get("Tarih", "")
-            s1 = item.get("TP_DIBSPIYDEG_ST", "")
-            s2 = item.get("TP_DIBSPIYDEG_S2", "")
             if not tarih_str:
                 continue
             try:
                 tarih = datetime.strptime(tarih_str, "%d-%m-%Y").date()
             except Exception:
                 continue
-            s1_val = float(s1.replace(",", ".")) if s1 and s1 != "" else None
-            s2_val = float(s2.replace(",", ".")) if s2 and s2 != "" else None
-            oran   = None
-            if s1_val and s2_val and (s1_val + s2_val) > 0:
-                oran = s2_val / (s1_val + s2_val)
+
+            st_val   = parse(item, "TP_DIBSPIYDEG_ST")
+            s2_val   = parse(item, "TP_DIBSPIYDEG_S2")
+            s121_val = parse(item, "TP_DIBSPIYDEG_S121")
+            s122_val = parse(item, "TP_DIBSPIYDEG_S122")
+            s129_val = parse(item, "TP_DIBSPIYDEG_S129")
+            s1234_val= parse(item, "TP_DIBSPIYDEG_S1234")
+
+            # Fonlar = S129 + S1234
+            fonlar_val = None
+            if s129_val is not None and s1234_val is not None:
+                fonlar_val = s129_val + s1234_val
+            elif s129_val is not None:
+                fonlar_val = s129_val
+            elif s1234_val is not None:
+                fonlar_val = s1234_val
+
+            toplam = st_val  # ST zaten toplam
+
+            def oran(val):
+                if val is not None and toplam and toplam > 0:
+                    return val / toplam
+                return None
+
             satirlar.append({
-                "Tarih":               tarih,
-                "Toplam Ekonomi (S1)": s1_val,
-                "Dünyanın Geri Kalanı (S2)": s2_val,
-                "Yabancı Pay (S2/Toplam)": oran
+                "Tarih":                    tarih,
+                "Toplam (ST)":              st_val,
+                "Dünyanın Geri Kalanı (S2)":s2_val,
+                "TCMB (S121)":              s121_val,
+                "Bankalar (S122)":          s122_val,
+                "Fonlar (S129+S1234)":      fonlar_val,
+                "S2 / Toplam":              oran(s2_val),
+                "TCMB / Toplam":            oran(s121_val),
+                "Bankalar / Toplam":        oran(s122_val),
+                "Fonlar / Toplam":          oran(fonlar_val),
             })
         df = pd.DataFrame(satirlar).sort_values("Tarih").reset_index(drop=True)
         return df, None
@@ -280,82 +308,108 @@ elif sayfa == "🏦 DİBS Piyasa Değeri (TCMB)":
     st.markdown(f'<div class="badge">✅ {len(df_evds):,} haftalık veri yüklendi</div>', unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Son satır metrikleri
-    son = df_evds.dropna(subset=["Toplam Ekonomi (S1)"]).iloc[-1]
+    son = df_evds.dropna(subset=["Toplam (ST)"]).iloc[-1]
 
-    m1, m2, m3 = st.columns(3)
-    with m1:
-        st.markdown(f"""<div class="metric-card">
-            <div class="metric-label">Toplam Ekonomi (S1)</div>
-            <div class="metric-value">{son['Toplam Ekonomi (S1)']:,.0f}</div>
+    # --- METRİKLER: DEĞERLER ---
+    st.markdown("#### Piyasa Değerleri (milyon TL)")
+    m1, m2, m3, m4, m5 = st.columns(5)
+    def metrik(col, baslik, deger):
+        val = f"{deger:,.0f}" if deger is not None and pd.notna(deger) else "—"
+        col.markdown(f"""<div class="metric-card">
+            <div class="metric-label">{baslik}</div>
+            <div class="metric-value">{val}</div>
         </div>""", unsafe_allow_html=True)
-    with m2:
-        st.markdown(f"""<div class="metric-card">
-            <div class="metric-label">Dünyanın Geri Kalanı (S2)</div>
-            <div class="metric-value">{son['Dünyanın Geri Kalanı (S2)']:,.0f}</div>
+
+    metrik(m1, "Toplam (ST)",              son["Toplam (ST)"])
+    metrik(m2, "Dünyanın Geri Kalanı (S2)",son["Dünyanın Geri Kalanı (S2)"])
+    metrik(m3, "TCMB (S121)",              son["TCMB (S121)"])
+    metrik(m4, "Bankalar (S122)",          son["Bankalar (S122)"])
+    metrik(m5, "Fonlar (S129+S1234)",      son["Fonlar (S129+S1234)"])
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- METRİKLER: ORANLAR ---
+    st.markdown("#### Toplama Oranlar")
+    r1, r2, r3, r4 = st.columns(4)
+    def oran_metrik(col, baslik, oran):
+        val = f"{oran:.2%}" if oran is not None and pd.notna(oran) else "—"
+        col.markdown(f"""<div class="metric-card">
+            <div class="metric-label">{baslik}</div>
+            <div class="metric-value">{val}</div>
         </div>""", unsafe_allow_html=True)
-    with m3:
-        oran_pct = son['Yabancı Pay (S2/Toplam)']
-        oran_str = f"{oran_pct:.1%}" if oran_pct else "—"
-        st.markdown(f"""<div class="metric-card">
-            <div class="metric-label">Yabancı Pay (S2 / Toplam)</div>
-            <div class="metric-value">{oran_str}</div>
-        </div>""", unsafe_allow_html=True)
+
+    oran_metrik(r1, "S2 / Toplam",        son["S2 / Toplam"])
+    oran_metrik(r2, "TCMB / Toplam",      son["TCMB / Toplam"])
+    oran_metrik(r3, "Bankalar / Toplam",  son["Bankalar / Toplam"])
+    oran_metrik(r4, "Fonlar / Toplam",    son["Fonlar / Toplam"])
 
     st.markdown(f"*Son veri tarihi: {son['Tarih'].strftime('%d.%m.%Y')}*")
     st.markdown("---")
 
-    # Grafik
-    st.markdown("### 📉 Grafikler")
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=df_evds["Tarih"], y=df_evds["Toplam Ekonomi (S1)"],
-        name="Toplam Ekonomi (S1)", line=dict(color="#64ffda", width=2),
-        fill="tozeroy", fillcolor="rgba(100,255,218,0.05)"
-    ))
-    fig.add_trace(go.Scatter(
-        x=df_evds["Tarih"], y=df_evds["Dünyanın Geri Kalanı (S2)"],
-        name="Dünyanın Geri Kalanı (S2)", line=dict(color="#ff6b8a", width=2),
-        fill="tozeroy", fillcolor="rgba(255,107,138,0.05)"
-    ))
-    fig.update_layout(
-        title="DİBS Piyasa Değeri (milyon TL)",
+    # --- GRAFİK 1: PİYASA DEĞERLERİ ---
+    st.markdown("### 📉 Piyasa Değerleri (milyon TL)")
+    fig1 = go.Figure()
+    renkler = {
+        "Toplam (ST)":               "#64ffda",
+        "Dünyanın Geri Kalanı (S2)": "#ff6b8a",
+        "TCMB (S121)":               "#f7c59f",
+        "Bankalar (S122)":           "#a8dadc",
+        "Fonlar (S129+S1234)":       "#c77dff",
+    }
+    for kolon, renk in renkler.items():
+        fig1.add_trace(go.Scatter(
+            x=df_evds["Tarih"], y=df_evds[kolon],
+            name=kolon, line=dict(color=renk, width=2)
+        ))
+    fig1.update_layout(
         paper_bgcolor="#1e2130", plot_bgcolor="#1e2130",
         font=dict(color="#8892b0"),
         xaxis=dict(gridcolor="#2d3250"),
         yaxis=dict(gridcolor="#2d3250"),
         legend=dict(bgcolor="#1e2130"),
-        margin=dict(l=10, r=10, t=50, b=10),
-        height=380
+        margin=dict(l=10, r=10, t=30, b=10), height=400
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig1, use_container_width=True)
 
-    fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(
-        x=df_evds["Tarih"], y=df_evds["Yabancı Pay (S2/Toplam)"],
-        name="Yabancı Pay", line=dict(color="#f7c59f", width=2),
-        fill="tozeroy", fillcolor="rgba(247,197,159,0.08)"
-    ))
-    fig2.update_layout(
-        title="Yabancı Pay — S2 / (S1 + S2)",
-        paper_bgcolor="#1e2130", plot_bgcolor="#1e2130",
-        font=dict(color="#8892b0"),
-        xaxis=dict(gridcolor="#2d3250"),
-        yaxis=dict(gridcolor="#2d3250", tickformat=".1%"),
-        margin=dict(l=10, r=10, t=50, b=10),
-        height=300
-    )
-    st.plotly_chart(fig2, use_container_width=True)
+    # --- GRAFİK 2: ORANLAR (4 ayrı grafik yan yana) ---
+    st.markdown("### 📊 Toplama Oranlar")
+    oran_kolonlar = [
+        ("S2 / Toplam",       "#ff6b8a", "Dünyanın Geri Kalanı (S2) / Toplam"),
+        ("TCMB / Toplam",     "#f7c59f", "TCMB (S121) / Toplam"),
+        ("Bankalar / Toplam", "#a8dadc", "Bankalar (S122) / Toplam"),
+        ("Fonlar / Toplam",   "#c77dff", "Fonlar (S129+S1234) / Toplam"),
+    ]
+    gc1, gc2 = st.columns(2)
+    for idx, (kolon, renk, baslik) in enumerate(oran_kolonlar):
+        fig_o = go.Figure()
+        fig_o.add_trace(go.Scatter(
+            x=df_evds["Tarih"], y=df_evds[kolon],
+            name=kolon, line=dict(color=renk, width=2),
+            fill="tozeroy", fillcolor=renk.replace(")", ",0.08)").replace("rgb", "rgba") if "rgb" in renk else renk + "14"
+        ))
+        fig_o.update_layout(
+            title=baslik,
+            paper_bgcolor="#1e2130", plot_bgcolor="#1e2130",
+            font=dict(color="#8892b0"),
+            xaxis=dict(gridcolor="#2d3250"),
+            yaxis=dict(gridcolor="#2d3250", tickformat=".1%"),
+            margin=dict(l=10, r=10, t=40, b=10),
+            height=280, showlegend=False
+        )
+        if idx % 2 == 0:
+            gc1.plotly_chart(fig_o, use_container_width=True)
+        else:
+            gc2.plotly_chart(fig_o, use_container_width=True)
 
     st.markdown("---")
     st.markdown(f"### 📋 Veri Tablosu ({len(df_evds):,} satır)")
 
     df_goster = df_evds.copy()
     df_goster["Tarih"] = df_goster["Tarih"].apply(lambda x: x.strftime("%d.%m.%Y"))
-    df_goster["Yabancı Pay (S2/Toplam)"] = df_goster["Yabancı Pay (S2/Toplam)"].apply(
-        lambda x: f"{x:.2%}" if pd.notna(x) else ""
-    )
+    for oran_kol in ["S2 / Toplam", "TCMB / Toplam", "Bankalar / Toplam", "Fonlar / Toplam"]:
+        df_goster[oran_kol] = df_goster[oran_kol].apply(
+            lambda x: f"{x:.2%}" if pd.notna(x) and x is not None else ""
+        )
     st.dataframe(df_goster.iloc[::-1].reset_index(drop=True),
                  use_container_width=True, height=400, hide_index=True)
 
