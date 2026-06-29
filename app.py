@@ -94,7 +94,7 @@ def evds_dibs_cek():
     bitis     = date.today().strftime("%d-%m-%Y")
     url = (
         "https://evds3.tcmb.gov.tr/igmevdsms-dis/series="
-        "TP.DIBSPIYDEG.S1-TP.DIBSPIYDEG.S2"
+        "TP.DIBSPIYDEG.ST-TP.DIBSPIYDEG.S2"
         f"&startDate={baslangic}&endDate={bitis}"
         "&type=json&frequency=2"
     )
@@ -110,7 +110,7 @@ def evds_dibs_cek():
         satirlar = []
         for item in items:
             tarih_str = item.get("Tarih", "")
-            s1 = item.get("TP_DIBSPIYDEG_S1", "")
+            s1 = item.get("TP_DIBSPIYDEG_ST", "")
             s2 = item.get("TP_DIBSPIYDEG_S2", "")
             if not tarih_str:
                 continue
