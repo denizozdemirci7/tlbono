@@ -17,10 +17,22 @@ st.markdown("""
     [data-testid="stSidebar"] { background-color: #1e2130; }
     .metric-card { background: #1e2130; border: 1px solid #2d3250; border-radius: 10px; padding: 16px 20px; margin-bottom: 10px; }
     .metric-label { color: #8892b0; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
-    .metric-value { color: #e6f1ff; font-size: 26px; font-weight: 700; margin-top: 4px; }
-    .header-title { color: #e6f1ff; font-size: 34px; font-weight: 800; }
-    .header-sub { color: #8892b0; font-size: 14px; margin-top: -6px; }
+    .metric-value { color: #ffffff; font-size: 26px; font-weight: 700; margin-top: 4px; }
+    .header-title { color: #ffffff; font-size: 34px; font-weight: 800; }
+    .header-sub { color: #ccd6f6; font-size: 14px; margin-top: -6px; }
     .badge { background: #2d3250; color: #64ffda; font-size: 12px; padding: 4px 12px; border-radius: 20px; display: inline-block; }
+
+    /* Sidebar yazıları */
+    [data-testid="stSidebar"] * { color: #ffffff !important; }
+    [data-testid="stSidebar"] .stRadio label { color: #ffffff !important; font-size: 15px !important; font-weight: 500 !important; }
+    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label p { color: #ffffff !important; }
+
+    /* Genel metin rengi */
+    .stMarkdown p { color: #ccd6f6; }
+    h1, h2, h3, h4 { color: #ffffff !important; }
+    
+    /* Tablo başlıkları */
+    [data-testid="stDataFrame"] th { color: #ffffff !important; background-color: #1e2130 !important; }
 </style>
 """, unsafe_allow_html=True)
 
