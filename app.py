@@ -374,18 +374,18 @@ elif sayfa == "🏦 DİBS Piyasa Değeri (TCMB)":
     # --- GRAFİK 2: ORANLAR (4 ayrı grafik yan yana) ---
     st.markdown("### 📊 Toplama Oranlar")
     oran_kolonlar = [
-        ("S2 / Toplam",       "#ff6b8a", "Dünyanın Geri Kalanı (S2) / Toplam"),
-        ("TCMB / Toplam",     "#f7c59f", "TCMB (S121) / Toplam"),
-        ("Bankalar / Toplam", "#a8dadc", "Bankalar (S122) / Toplam"),
-        ("Fonlar / Toplam",   "#c77dff", "Fonlar (S129+S1234) / Toplam"),
+        ("S2 / Toplam",       "#ff6b8a", "rgba(255,107,138,0.08)", "Dünyanın Geri Kalanı (S2) / Toplam"),
+        ("TCMB / Toplam",     "#f7c59f", "rgba(247,197,159,0.08)", "TCMB (S121) / Toplam"),
+        ("Bankalar / Toplam", "#a8dadc", "rgba(168,218,220,0.08)", "Bankalar (S122) / Toplam"),
+        ("Fonlar / Toplam",   "#c77dff", "rgba(199,125,255,0.08)", "Fonlar (S129+S1234) / Toplam"),
     ]
     gc1, gc2 = st.columns(2)
-    for idx, (kolon, renk, baslik) in enumerate(oran_kolonlar):
+    for idx, (kolon, renk, fill, baslik) in enumerate(oran_kolonlar):
         fig_o = go.Figure()
         fig_o.add_trace(go.Scatter(
             x=df_evds["Tarih"], y=df_evds[kolon],
             name=kolon, line=dict(color=renk, width=2),
-            fill="tozeroy", fillcolor=renk.replace(")", ",0.08)").replace("rgb", "rgba") if "rgb" in renk else renk + "14"
+            fill="tozeroy", fillcolor=fill
         ))
         fig_o.update_layout(
             title=baslik,
