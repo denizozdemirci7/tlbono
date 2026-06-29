@@ -90,7 +90,7 @@ def bist_veri_cek(tarih: date):
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def evds_dibs_cek():
-    baslangic = "01-01-2016"
+    baslangic = "11-09-2020"
     bitis     = date.today().strftime("%d-%m-%Y")
     url = (
         "https://evds3.tcmb.gov.tr/igmevdsms-dis/series="
