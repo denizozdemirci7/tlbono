@@ -349,16 +349,16 @@ if sayfa == "🏦 DİBS Piyasa Değeri":
             gc2.plotly_chart(fig_o, use_container_width=True)
 
     st.markdown("---")
-    st.markdown(f"### 📋 Veri Tablosu ({len(df_evds):,} satır)")
-    df_goster = df_evds.copy()
-    df_goster["Tarih"] = df_goster["Tarih"].apply(lambda x: x.strftime("%d.%m.%Y"))
-    for oran_kol in ["Dünyanın Geri Kalanı / Toplam", "TCMB / Toplam", "Bankalar / Toplam", "Fonlar / Toplam"]:
-        df_goster[oran_kol] = df_goster[oran_kol].apply(
-            lambda x: f"{x:.2%}" if pd.notna(x) and x is not None else ""
-        )
-    st.dataframe(df_goster.iloc[::-1].reset_index(drop=True), use_container_width=True, height=400, hide_index=True)
-    csv = df_evds.to_csv(index=False).encode("utf-8-sig")
-    st.download_button("⬇️ CSV olarak indir", data=csv, file_name="dibs_piyasa_degeri.csv", mime="text/csv")
+    with st.expander(f"📋 Veri Tablosu ({len(df_evds):,} satır)", expanded=False):
+        df_goster = df_evds.copy()
+        df_goster["Tarih"] = df_goster["Tarih"].apply(lambda x: x.strftime("%d.%m.%Y"))
+        for oran_kol in ["Dünyanın Geri Kalanı / Toplam", "TCMB / Toplam", "Bankalar / Toplam", "Fonlar / Toplam"]:
+            df_goster[oran_kol] = df_goster[oran_kol].apply(
+                lambda x: f"{x:.2%}" if pd.notna(x) and x is not None else ""
+            )
+        st.dataframe(df_goster.iloc[::-1].reset_index(drop=True), use_container_width=True, height=400, hide_index=True)
+        csv = df_evds.to_csv(index=False).encode("utf-8-sig")
+        st.download_button("⬇️ CSV olarak indir", data=csv, file_name="dibs_piyasa_degeri.csv", mime="text/csv")
 
 
 # ═════════════════════════════════════════════
@@ -465,53 +465,53 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
     st.markdown("---")
 
     # --- TABLO ---
-    st.markdown(f"### 📋 Veri Tablosu ({len(df):,} satır)")
-    df_goster = df.copy()
-    df_goster["Tarih"] = df_goster["Tarih"].apply(lambda x: x.strftime("%d.%m.%Y"))
-    for kol in ["TÜFE Aylık %", "TÜFE Yıllık %", "C Çekirdek Aylık %", "C Çekirdek Yıllık %"]:
-        df_goster[kol] = df_goster[kol].apply(
-            lambda x: f"{x:.2%}" if pd.notna(x) and x is not None else ""
-        )
-    st.dataframe(df_goster.iloc[::-1].reset_index(drop=True), use_container_width=True, height=450, hide_index=True)
-    csv = df.to_csv(index=False).encode("utf-8-sig")
-    st.download_button("⬇️ CSV olarak indir", data=csv, file_name="enflasyon.csv", mime="text/csv")
+    with st.expander(f"📋 Veri Tablosu ({len(df):,} satır)", expanded=False):
+        df_goster = df.copy()
+        df_goster["Tarih"] = df_goster["Tarih"].apply(lambda x: x.strftime("%d.%m.%Y"))
+        for kol in ["TÜFE Aylık %", "TÜFE Yıllık %", "C Çekirdek Aylık %", "C Çekirdek Yıllık %"]:
+            df_goster[kol] = df_goster[kol].apply(
+                lambda x: f"{x:.2%}" if pd.notna(x) and x is not None else ""
+            )
+        st.dataframe(df_goster.iloc[::-1].reset_index(drop=True), use_container_width=True, height=450, hide_index=True)
+        csv = df.to_csv(index=False).encode("utf-8-sig")
+        st.download_button("⬇️ CSV olarak indir", data=csv, file_name="enflasyon.csv", mime="text/csv")
 
     st.markdown("---")
 
     # --- KONUT FİYAT ENDEKSLERİ VE REEL GETİRİ TABLOSU ---
-    st.markdown("### 🏠 M2 Para Arzı ve Konut Fiyat Endeksi — Nominal ve Reel Getiriler")
-    st.caption(
-        "Reel getiri = (1 + Nominal Değişim) / (1 + TÜFE Değişim) − 1."
-    )
-
-    konut_kolonlar = [
-        "Tarih",
-        "TÜFE", "TÜFE Aylık %", "TÜFE Yıllık %",
-        "M2 Para Arzı", "M2 Para Arzı Aylık %", "M2 Para Arzı Yıllık %",
-        "M2 Para Arzı Reel Aylık %", "M2 Para Arzı Reel Yıllık %",
-        "Bono Piyasa Toplam Değeri", "Bono Piyasa Toplam Değeri Aylık %", "Bono Piyasa Toplam Değeri Yıllık %",
-        "Konut Fiyat Endeksi", "Konut Fiyat Endeksi Aylık %", "Konut Fiyat Endeksi Yıllık %",
-        "Konut Fiyat Endeksi Reel Aylık %", "Konut Fiyat Endeksi Reel Yıllık %",
-    ]
-    df_konut = df[konut_kolonlar].copy()
-    df_konut["Tarih"] = df_konut["Tarih"].apply(lambda x: x.strftime("%d.%m.%Y"))
-
-    yuzde_kolonlari = [k for k in konut_kolonlar if "%" in k]
-    for kol in yuzde_kolonlari:
-        df_konut[kol] = df_konut[kol].apply(
-            lambda x: f"{x:.2%}" if pd.notna(x) and x is not None else ""
+    with st.expander("🏠 M2 Para Arzı ve Konut Fiyat Endeksi — Nominal ve Reel Getiriler", expanded=False):
+        st.caption(
+            "Reel getiri = (1 + Nominal Değişim) / (1 + TÜFE Değişim) − 1."
         )
 
-    st.dataframe(
-        df_konut.iloc[::-1].reset_index(drop=True),
-        use_container_width=True, height=450, hide_index=True
-    )
-    csv_konut = df[konut_kolonlar].to_csv(index=False).encode("utf-8-sig")
-    st.download_button(
-        "⬇️ CSV olarak indir (M2 ve Konut Fiyat Endeksi)",
-        data=csv_konut, file_name="m2_konut_fiyat_endeksi.csv", mime="text/csv",
-        key="konut_csv_indir"
-    )
+        konut_kolonlar = [
+            "Tarih",
+            "TÜFE", "TÜFE Aylık %", "TÜFE Yıllık %",
+            "M2 Para Arzı", "M2 Para Arzı Aylık %", "M2 Para Arzı Yıllık %",
+            "M2 Para Arzı Reel Aylık %", "M2 Para Arzı Reel Yıllık %",
+            "Bono Piyasa Toplam Değeri", "Bono Piyasa Toplam Değeri Aylık %", "Bono Piyasa Toplam Değeri Yıllık %",
+            "Konut Fiyat Endeksi", "Konut Fiyat Endeksi Aylık %", "Konut Fiyat Endeksi Yıllık %",
+            "Konut Fiyat Endeksi Reel Aylık %", "Konut Fiyat Endeksi Reel Yıllık %",
+        ]
+        df_konut = df[konut_kolonlar].copy()
+        df_konut["Tarih"] = df_konut["Tarih"].apply(lambda x: x.strftime("%d.%m.%Y"))
+
+        yuzde_kolonlari = [k for k in konut_kolonlar if "%" in k]
+        for kol in yuzde_kolonlari:
+            df_konut[kol] = df_konut[kol].apply(
+                lambda x: f"{x:.2%}" if pd.notna(x) and x is not None else ""
+            )
+
+        st.dataframe(
+            df_konut.iloc[::-1].reset_index(drop=True),
+            use_container_width=True, height=450, hide_index=True
+        )
+        csv_konut = df[konut_kolonlar].to_csv(index=False).encode("utf-8-sig")
+        st.download_button(
+            "⬇️ CSV olarak indir (M2 ve Konut Fiyat Endeksi)",
+            data=csv_konut, file_name="m2_konut_fiyat_endeksi.csv", mime="text/csv",
+            key="konut_csv_indir"
+        )
 
     st.markdown("---")
 
