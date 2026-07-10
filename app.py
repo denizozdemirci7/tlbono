@@ -242,11 +242,10 @@ if sayfa == "🏦 DİBS Piyasa Değeri":
             <div class="metric-value">{val}</div>
         </div>""", unsafe_allow_html=True)
 
-    oran_metrik(r1, "Dünyanın Geri Kalanı / Toplam", son["Dünyanın Geri Kalanı / Toplam"])
-    oran_metrik(r2, "TCMB / Toplam",                 son["TCMB / Toplam"])
-    oran_metrik(r3, "Bankalar / Toplam",             son["Bankalar / Toplam"])
-    oran_metrik(r4, "Fonlar / Toplam",               son["Fonlar / Toplam"])
-
+    oran_metrik(r1, "Yabancı Sahipliği",                              son["Dünyanın Geri Kalanı / Toplam"])
+    oran_metrik(r2, "TCMB Sahipliği",                                 son["TCMB / Toplam"])
+    oran_metrik(r3, "Bankalar Sahipliği",                             son["Bankalar / Toplam"])
+    oran_metrik(r4, "Yatırım ve Emeklilik Fonları Sahipliği",         son["Fonlar / Toplam"])
     st.markdown(f"*Son veri tarihi: {son['Tarih'].strftime('%d.%m.%Y')}*")
     st.markdown("---")
 
@@ -276,10 +275,10 @@ if sayfa == "🏦 DİBS Piyasa Değeri":
 
     st.markdown("### 📊 Toplama Oranlar")
     oran_kolonlar = [
-        ("Dünyanın Geri Kalanı / Toplam", "#ff6b8a", "rgba(255,107,138,0.08)", "Dünyanın Geri Kalanı / Toplam"),
-        ("TCMB / Toplam",                 "#f7c59f", "rgba(247,197,159,0.08)", "TCMB / Toplam"),
-        ("Bankalar / Toplam",             "#a8dadc", "rgba(168,218,220,0.08)", "Bankalar / Toplam"),
-        ("Fonlar / Toplam",               "#c77dff", "rgba(199,125,255,0.08)", "Fonlar / Toplam"),
+        ("Dünyanın Geri Kalanı / Toplam", "#ff6b8a", "rgba(255,107,138,0.08)", "Yabancı Sahipliği"),
+        ("TCMB / Toplam",                 "#f7c59f", "rgba(247,197,159,0.08)", "TCMB Sahipliği"),
+        ("Bankalar / Toplam",             "#a8dadc", "rgba(168,218,220,0.08)", "Bankalar Sahipliği"),
+        ("Fonlar / Toplam",               "#c77dff", "rgba(199,125,255,0.08)", "Yatırım ve Emeklilik Fonları Sahipliği"),
     ]
     gc1, gc2 = st.columns(2)
     for idx, (kolon, renk, fill, baslik) in enumerate(oran_kolonlar):
