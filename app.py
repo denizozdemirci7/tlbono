@@ -270,30 +270,6 @@ if sayfa == "🏦 DİBS Piyasa Değeri":
     st.markdown(f"*Son veri tarihi: {son['Tarih'].strftime('%d.%m.%Y')}*")
     st.markdown("---")
 
-    st.markdown("### 📉 Piyasa Değerleri (milyon TL)")
-    fig1 = go.Figure()
-    renkler = {
-        "Bono Piyasa Toplam Değeri":               "#64ffda",
-        "Dünyanın Geri Kalanı (S2)": "#ff6b8a",
-        "TCMB (S121)":               "#f7c59f",
-        "Bankalar (S122)":           "#a8dadc",
-        "Fonlar (S129+S1234)":       "#c77dff",
-    }
-    for kolon, renk in renkler.items():
-        fig1.add_trace(go.Scatter(
-            x=df_evds["Tarih"], y=df_evds[kolon],
-            name=kolon, line=dict(color=renk, width=2)
-        ))
-    fig1.update_layout(
-        paper_bgcolor="#1e2130", plot_bgcolor="#1e2130",
-        font=dict(color="#8892b0"),
-        xaxis=dict(gridcolor="#2d3250"),
-        yaxis=dict(gridcolor="#2d3250"),
-        legend=dict(bgcolor="#1e2130"),
-        margin=dict(l=10, r=10, t=30, b=10), height=400
-    )
-    st.plotly_chart(fig1, use_container_width=True)
-
     st.markdown("### 📊 Toplama Oranlar")
     oran_kolonlar = [
         ("Dünyanın Geri Kalanı / Toplam", "#ff6b8a", "rgba(255,107,138,0.08)", "Yabancı Sahipliği"),
