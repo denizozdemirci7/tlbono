@@ -531,11 +531,8 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
             name=isim, line=dict(color=renk, width=2.2)
         ))
 
-    # --- Sağ üst özet tablo: Son, 3 Ay Önce, 1 Yıl Önce değerleri ---
-    son_tarih = df["Tarih"].iloc[-1]
-    tarih_3ay = son_tarih - relativedelta(months=3)
-    tarih_1yil = son_tarih - relativedelta(months=12)
-
+    # --- Sağ üst özet tablo yerine sol üst: Son, 3 Ay Önce, 1 Yıl Önce değerleri ---
+    # Her seri kendi son mevcut verisine göre hesaplanır (KFE/TÜFE diğerlerinden gecikmeli gelebilir)
     def deger_bul(hedef_tarih, kolon):
         eslesen = df[df["Tarih"].apply(
             lambda d: d.year == hedef_tarih.year and d.month == hedef_tarih.month
@@ -553,9 +550,14 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
         f"{'Seri'.ljust(isim_genislik)}  {'Son'.rjust(8)}  {'3 Ay Önce'.rjust(8)}  {'1 Yıl Önce'.rjust(8)}"
     ]
     for kolon, isim, _ in yillik_seriler:
-        son_deger = deger_bul(son_tarih, kolon)
-        deger_3ay = deger_bul(tarih_3ay, kolon)
-        deger_1yil = deger_bul(tarih_1yil, kolon)
+        kendi_seri = df[["Tarih", kolon]].dropna()
+        if kendi_seri.empty:
+            satirlar_tablo.append(f"{isim.ljust(isim_genislik)}  {fmt(None)}  {fmt(None)}  {fmt(None)}")
+            continue
+        kendi_son_tarih = kendi_seri["Tarih"].iloc[-1]
+        son_deger = kendi_seri[kolon].iloc[-1]
+        deger_3ay = deger_bul(kendi_son_tarih - relativedelta(months=3), kolon)
+        deger_1yil = deger_bul(kendi_son_tarih - relativedelta(months=12), kolon)
         satirlar_tablo.append(
             f"{isim.ljust(isim_genislik)}  {fmt(son_deger)}  {fmt(deger_3ay)}  {fmt(deger_1yil)}"
         )
@@ -563,7 +565,7 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
 
     fig_yillik.add_annotation(
         xref="paper", yref="paper",
-        x=0.99, y=0.99, xanchor="right", yanchor="top",
+        x=0.01, y=0.99, xanchor="left", yanchor="top",
         text=ozet_metin,
         showarrow=False,
         align="left",
