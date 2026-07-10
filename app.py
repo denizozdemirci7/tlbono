@@ -34,6 +34,11 @@ st.markdown("""
     
     /* Tablo başlıkları */
     [data-testid="stDataFrame"] th { color: #ffffff !important; background-color: #1e2130 !important; }
+
+    /* Expander başlıkları */
+    [data-testid="stExpander"] summary { color: #ffffff !important; }
+    [data-testid="stExpander"] summary p { color: #ffffff !important; font-weight: 600 !important; }
+    [data-testid="stExpander"] summary svg { fill: #ffffff !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -349,7 +354,7 @@ if sayfa == "🏦 DİBS Piyasa Değeri":
             gc2.plotly_chart(fig_o, use_container_width=True)
 
     st.markdown("---")
-    with st.expander(f"📋 Veri Tablosu ({len(df_evds):,} satır)", expanded=False):
+    with st.expander(f"📋 Veri Tablosu ({len(df_evds):,} satır) (Tabloyu görmek için tıklayınız)", expanded=False):
         df_goster = df_evds.copy()
         df_goster["Tarih"] = df_goster["Tarih"].apply(lambda x: x.strftime("%d.%m.%Y"))
         for oran_kol in ["Dünyanın Geri Kalanı / Toplam", "TCMB / Toplam", "Bankalar / Toplam", "Fonlar / Toplam"]:
@@ -465,7 +470,7 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
     st.markdown("---")
 
     # --- TABLO ---
-    with st.expander(f"📋 Veri Tablosu ({len(df):,} satır)", expanded=False):
+    with st.expander(f"📋 Veri Tablosu ({len(df):,} satır) (Tabloyu görmek için tıklayınız)", expanded=False):
         df_goster = df.copy()
         df_goster["Tarih"] = df_goster["Tarih"].apply(lambda x: x.strftime("%d.%m.%Y"))
         for kol in ["TÜFE Aylık %", "TÜFE Yıllık %", "C Çekirdek Aylık %", "C Çekirdek Yıllık %"]:
@@ -479,7 +484,7 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
     st.markdown("---")
 
     # --- KONUT FİYAT ENDEKSLERİ VE REEL GETİRİ TABLOSU ---
-    with st.expander("🏠 M2 Para Arzı ve Konut Fiyat Endeksi — Nominal ve Reel Getiriler", expanded=False):
+    with st.expander("🏠 M2 Para Arzı ve Konut Fiyat Endeksi — Nominal ve Reel Getiriler (Tabloyu görmek için tıklayınız)", expanded=False):
         st.caption(
             "Reel getiri = (1 + Nominal Değişim) / (1 + TÜFE Değişim) − 1."
         )
