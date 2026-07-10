@@ -95,7 +95,7 @@ def evds_dibs_cek():
                 return None
             satirlar.append({
                 "Tarih":                         tarih,
-                "Toplam (ST)":                   st_val,
+                "Bono Piyasa Toplam Değeri":                   st_val,
                 "Dünyanın Geri Kalanı (S2)":     s2_val,
                 "TCMB (S121)":                   s121_val,
                 "Bankalar (S122)":               s122_val,
@@ -157,12 +157,12 @@ def evds_enflasyon_cek():
                 "C Çekirdek":              parse(item, "TP_FE25_OKTG04"),
                 "M2 Para Arzı":            parse(item, "TP_HPBITABLO1_11"),
                 "Konut Fiyat Endeksi":     parse(item, "TP_KFE_TR"),
-                "Toplam (ST)":             parse(item, "TP_DIBSPIYDEG_ST"),
+                "Bono Piyasa Toplam Değeri":             parse(item, "TP_DIBSPIYDEG_ST"),
             })
 
         df = pd.DataFrame(satirlar).sort_values("Tarih").reset_index(drop=True)
 
-        for kolon in ["TÜFE", "C Çekirdek", "M2 Para Arzı", "Konut Fiyat Endeksi", "Toplam (ST)"]:
+        for kolon in ["TÜFE", "C Çekirdek", "M2 Para Arzı", "Konut Fiyat Endeksi", "Bono Piyasa Toplam Değeri"]:
             df[f"{kolon} Aylık %"]  = df[kolon].pct_change(fill_method=None)
             df[f"{kolon} Yıllık %"] = df[kolon].pct_change(12, fill_method=None)
 
@@ -236,11 +236,11 @@ if sayfa == "🏦 DİBS Piyasa Değeri":
     st.markdown(f'<div class="badge">✅ {len(df_evds):,} haftalık veri yüklendi</div>', unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    son = df_evds.dropna(subset=["Toplam (ST)"]).iloc[-1]
+    son = df_evds.dropna(subset=["Bono Piyasa Toplam Değeri"]).iloc[-1]
 
     st.markdown("#### Piyasa Değerleri (milyon TL)")
     m1, m2, m3, m4, m5 = st.columns(5)
-    metrik(m1, "Toplam (ST)",               son["Toplam (ST)"])
+    metrik(m1, "Bono Piyasa Toplam Değeri",               son["Bono Piyasa Toplam Değeri"])
     metrik(m2, "Dünyanın Geri Kalanı (S2)", son["Dünyanın Geri Kalanı (S2)"])
     metrik(m3, "TCMB (S121)",               son["TCMB (S121)"])
     metrik(m4, "Bankalar (S122)",           son["Bankalar (S122)"])
@@ -268,7 +268,7 @@ if sayfa == "🏦 DİBS Piyasa Değeri":
     st.markdown("### 📉 Piyasa Değerleri (milyon TL)")
     fig1 = go.Figure()
     renkler = {
-        "Toplam (ST)":               "#64ffda",
+        "Bono Piyasa Toplam Değeri":               "#64ffda",
         "Dünyanın Geri Kalanı (S2)": "#ff6b8a",
         "TCMB (S121)":               "#f7c59f",
         "Bankalar (S122)":           "#a8dadc",
@@ -489,7 +489,7 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
         "TÜFE", "TÜFE Aylık %", "TÜFE Yıllık %",
         "M2 Para Arzı", "M2 Para Arzı Aylık %", "M2 Para Arzı Yıllık %",
         "M2 Para Arzı Reel Aylık %", "M2 Para Arzı Reel Yıllık %",
-        "Toplam (ST)", "Toplam (ST) Aylık %", "Toplam (ST) Yıllık %",
+        "Bono Piyasa Toplam Değeri", "Bono Piyasa Toplam Değeri Aylık %", "Bono Piyasa Toplam Değeri Yıllık %",
         "Konut Fiyat Endeksi", "Konut Fiyat Endeksi Aylık %", "Konut Fiyat Endeksi Yıllık %",
         "Konut Fiyat Endeksi Reel Aylık %", "Konut Fiyat Endeksi Reel Yıllık %",
     ]
@@ -522,7 +522,7 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
         ("TÜFE Yıllık %",                "TÜFE",                "#ff6b8a"),
         ("M2 Para Arzı Yıllık %",        "M2 Para Arzı",        "#64ffda"),
         ("Konut Fiyat Endeksi Yıllık %", "Konut Fiyat Endeksi", "#f7c59f"),
-        ("Toplam (ST) Yıllık %",         "Toplam (ST)",         "#c77dff"),
+        ("Bono Piyasa Toplam Değeri Yıllık %",         "Bono Piyasa Toplam Değeri",         "#c77dff"),
     ]
     for kolon, isim, renk in yillik_seriler:
         seri = df[["Tarih", kolon]].dropna()
