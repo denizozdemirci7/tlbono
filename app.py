@@ -208,7 +208,7 @@ def metrik(col, baslik, deger, fmt=","):
 
 sayfa = st.sidebar.radio(
     "Sayfa",
-    ["🏦 DİBS Piyasa Değeri", "📈 Enflasyon ve Para Arzı"],
+    ["🏦 DİBS Piyasa Değeri", "📈 TÜFE, M2, KFE ve Bono"],
     label_visibility="collapsed"
 )
 
@@ -346,11 +346,11 @@ if sayfa == "🏦 DİBS Piyasa Değeri":
 # SAYFA 2 — ENFLASYON VE PARA ARZI
 # ═════════════════════════════════════════════
 
-elif sayfa == "📈 Enflasyon ve Para Arzı":
+elif sayfa == "📈 TÜFE, M2, KFE ve Bono":
 
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.markdown('<div class="header-title">📈 Enflasyon ve Para Arzı</div>', unsafe_allow_html=True)
+        st.markdown('<div class="header-title">📈 TÜFE, M2, KFE ve Bono</div>', unsafe_allow_html=True)
         st.markdown('<div class="header-sub">TCMB EVDS — Aylık, 2025=100</div>', unsafe_allow_html=True)
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
