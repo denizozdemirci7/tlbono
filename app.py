@@ -116,7 +116,7 @@ def evds_enflasyon_cek():
     bitis = date.today().strftime("%d-%m-%Y")
     url = (
         "https://evds3.tcmb.gov.tr/igmevdsms-dis/series="
-        "TP.FE25.OKTG01-TP.FE25.OKTG04"
+        "TP.FE25.OKTG01-TP.FE25.OKTG04-TP.HPBITABLO1.11-TP.KFE.TR"
         f"&startDate={baslangic}&endDate={bitis}"
         "&type=json&frequency=5"
     )
@@ -151,15 +151,28 @@ def evds_enflasyon_cek():
             if tarih is None:
                 continue
             satirlar.append({
-                "Tarih":      tarih,
-                "TÜFE":       parse(item, "TP_FE25_OKTG01"),
-                "C Çekirdek": parse(item, "TP_FE25_OKTG04"),
+                "Tarih":                   tarih,
+                "TÜFE":                    parse(item, "TP_FE25_OKTG01"),
+                "C Çekirdek":              parse(item, "TP_FE25_OKTG04"),
+                "M2 Para Arzı":            parse(item, "TP_HPBITABLO1_11"),
+                "Konut Fiyat Endeksi":     parse(item, "TP_KFE_TR"),
             })
 
         df = pd.DataFrame(satirlar).sort_values("Tarih").reset_index(drop=True)
-        for kolon in ["TÜFE", "C Çekirdek"]:
+
+        for kolon in ["TÜFE", "C Çekirdek", "M2 Para Arzı", "Konut Fiyat Endeksi"]:
             df[f"{kolon} Aylık %"]  = df[kolon].pct_change()
             df[f"{kolon} Yıllık %"] = df[kolon].pct_change(12)
+
+        # Enflasyondan arındırılmış (reel) getiriler: (1+nominal)/(1+TÜFE)-1
+        for kolon in ["M2 Para Arzı", "Konut Fiyat Endeksi"]:
+            df[f"{kolon} Reel Aylık %"] = (
+                (1 + df[f"{kolon} Aylık %"]) / (1 + df["TÜFE Aylık %"]) - 1
+            )
+            df[f"{kolon} Reel Yıllık %"] = (
+                (1 + df[f"{kolon} Yıllık %"]) / (1 + df["TÜFE Yıllık %"]) - 1
+            )
+
         return df, None
     except Exception as e:
         return None, str(e)
@@ -460,3 +473,39 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
     st.dataframe(df_goster.iloc[::-1].reset_index(drop=True), use_container_width=True, height=450, hide_index=True)
     csv = df.to_csv(index=False).encode("utf-8-sig")
     st.download_button("⬇️ CSV olarak indir", data=csv, file_name="enflasyon.csv", mime="text/csv")
+
+    st.markdown("---")
+
+    # --- KONUT FİYAT ENDEKSLERİ VE REEL GETİRİ TABLOSU ---
+    st.markdown("### 🏠 M2 Para Arzı ve Konut Fiyat Endeksi — Nominal ve Reel Getiriler")
+    st.caption(
+        "Reel getiri = (1 + Nominal Değişim) / (1 + TÜFE Değişim) − 1."
+    )
+
+    konut_kolonlar = [
+        "Tarih",
+        "TÜFE", "TÜFE Aylık %", "TÜFE Yıllık %",
+        "M2 Para Arzı", "M2 Para Arzı Aylık %", "M2 Para Arzı Yıllık %",
+        "M2 Para Arzı Reel Aylık %", "M2 Para Arzı Reel Yıllık %",
+        "Konut Fiyat Endeksi", "Konut Fiyat Endeksi Aylık %", "Konut Fiyat Endeksi Yıllık %",
+        "Konut Fiyat Endeksi Reel Aylık %", "Konut Fiyat Endeksi Reel Yıllık %",
+    ]
+    df_konut = df[konut_kolonlar].copy()
+    df_konut["Tarih"] = df_konut["Tarih"].apply(lambda x: x.strftime("%d.%m.%Y"))
+
+    yuzde_kolonlari = [k for k in konut_kolonlar if "%" in k]
+    for kol in yuzde_kolonlari:
+        df_konut[kol] = df_konut[kol].apply(
+            lambda x: f"{x:.2%}" if pd.notna(x) and x is not None else ""
+        )
+
+    st.dataframe(
+        df_konut.iloc[::-1].reset_index(drop=True),
+        use_container_width=True, height=450, hide_index=True
+    )
+    csv_konut = df[konut_kolonlar].to_csv(index=False).encode("utf-8-sig")
+    st.download_button(
+        "⬇️ CSV olarak indir (M2 ve Konut Fiyat Endeksi)",
+        data=csv_konut, file_name="m2_konut_fiyat_endeksi.csv", mime="text/csv",
+        key="konut_csv_indir"
+    )
