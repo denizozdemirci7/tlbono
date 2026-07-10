@@ -161,8 +161,8 @@ def evds_enflasyon_cek():
         df = pd.DataFrame(satirlar).sort_values("Tarih").reset_index(drop=True)
 
         for kolon in ["TÜFE", "C Çekirdek", "M2 Para Arzı", "Konut Fiyat Endeksi"]:
-            df[f"{kolon} Aylık %"]  = df[kolon].pct_change()
-            df[f"{kolon} Yıllık %"] = df[kolon].pct_change(12)
+            df[f"{kolon} Aylık %"]  = df[kolon].pct_change(fill_method=None)
+            df[f"{kolon} Yıllık %"] = df[kolon].pct_change(12, fill_method=None)
 
         # Enflasyondan arındırılmış (reel) getiriler: (1+nominal)/(1+TÜFE)-1
         for kolon in ["M2 Para Arzı", "Konut Fiyat Endeksi"]:
