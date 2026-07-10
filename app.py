@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import requests
 from datetime import date, datetime
+from dateutil.relativedelta import relativedelta
 
 st.set_page_config(
     page_title="TCMB Dashboard",
@@ -529,12 +530,54 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
             x=seri["Tarih"], y=seri[kolon],
             name=isim, line=dict(color=renk, width=2.2)
         ))
+
+    # --- Sağ üst özet tablo: Son, 3 Ay Önce, 1 Yıl Önce değerleri ---
+    son_tarih = df["Tarih"].iloc[-1]
+    tarih_3ay = son_tarih - relativedelta(months=3)
+    tarih_1yil = son_tarih - relativedelta(months=12)
+
+    def deger_bul(hedef_tarih, kolon):
+        eslesen = df[df["Tarih"].apply(
+            lambda d: d.year == hedef_tarih.year and d.month == hedef_tarih.month
+        )]
+        if eslesen.empty:
+            return None
+        v = eslesen.iloc[0][kolon]
+        return v if pd.notna(v) else None
+
+    def fmt(v):
+        return f"{v:+.1%}".rjust(8) if v is not None else "—".rjust(8)
+
+    isim_genislik = max(len(isim) for _, isim, _ in yillik_seriler)
+    satirlar_tablo = [
+        f"{'Seri'.ljust(isim_genislik)}  {'Son'.rjust(8)}  {'3 Ay Önce'.rjust(8)}  {'1 Yıl Önce'.rjust(8)}"
+    ]
+    for kolon, isim, _ in yillik_seriler:
+        son_deger = deger_bul(son_tarih, kolon)
+        deger_3ay = deger_bul(tarih_3ay, kolon)
+        deger_1yil = deger_bul(tarih_1yil, kolon)
+        satirlar_tablo.append(
+            f"{isim.ljust(isim_genislik)}  {fmt(son_deger)}  {fmt(deger_3ay)}  {fmt(deger_1yil)}"
+        )
+    ozet_metin = "<br>".join(satirlar_tablo)
+
+    fig_yillik.add_annotation(
+        xref="paper", yref="paper",
+        x=0.99, y=0.99, xanchor="right", yanchor="top",
+        text=ozet_metin,
+        showarrow=False,
+        align="left",
+        font=dict(color="#ffffff", size=11, family="Courier New, monospace"),
+        bgcolor="rgba(15,17,23,0.85)",
+        bordercolor="#2d3250", borderwidth=1, borderpad=8,
+    )
+
     fig_yillik.update_layout(
         paper_bgcolor="#1e2130", plot_bgcolor="#1e2130",
         font=dict(color="#8892b0"),
         xaxis=dict(gridcolor="#2d3250"),
         yaxis=dict(gridcolor="#2d3250", tickformat=".0%"),
-        legend=dict(bgcolor="#1e2130"),
+        legend=dict(bgcolor="#1e2130", font=dict(color="#ffffff")),
         margin=dict(l=10, r=10, t=30, b=10),
         height=450
     )
