@@ -116,9 +116,9 @@ def evds_enflasyon_cek():
     bitis = date.today().strftime("%d-%m-%Y")
     url = (
         "https://evds3.tcmb.gov.tr/igmevdsms-dis/series="
-        "TP.FE25.OKTG01-TP.FE25.OKTG04-TP.HPBITABLO1.11-TP.KFE.TR"
+        "TP.FE25.OKTG01-TP.FE25.OKTG04-TP.HPBITABLO1.11-TP.KFE.TR-TP.DIBSPIYDEG.ST"
         f"&startDate={baslangic}&endDate={bitis}"
-        "&type=json&frequency=5"
+        "&type=json&frequency=5&aggregationTypes=avg-avg-avg-avg-last"
     )
     headers = {"key": EVDS_KEY}
     try:
@@ -156,11 +156,12 @@ def evds_enflasyon_cek():
                 "C Çekirdek":              parse(item, "TP_FE25_OKTG04"),
                 "M2 Para Arzı":            parse(item, "TP_HPBITABLO1_11"),
                 "Konut Fiyat Endeksi":     parse(item, "TP_KFE_TR"),
+                "Toplam (ST)":             parse(item, "TP_DIBSPIYDEG_ST"),
             })
 
         df = pd.DataFrame(satirlar).sort_values("Tarih").reset_index(drop=True)
 
-        for kolon in ["TÜFE", "C Çekirdek", "M2 Para Arzı", "Konut Fiyat Endeksi"]:
+        for kolon in ["TÜFE", "C Çekirdek", "M2 Para Arzı", "Konut Fiyat Endeksi", "Toplam (ST)"]:
             df[f"{kolon} Aylık %"]  = df[kolon].pct_change(fill_method=None)
             df[f"{kolon} Yıllık %"] = df[kolon].pct_change(12, fill_method=None)
 
@@ -487,6 +488,7 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
         "TÜFE", "TÜFE Aylık %", "TÜFE Yıllık %",
         "M2 Para Arzı", "M2 Para Arzı Aylık %", "M2 Para Arzı Yıllık %",
         "M2 Para Arzı Reel Aylık %", "M2 Para Arzı Reel Yıllık %",
+        "Toplam (ST)", "Toplam (ST) Aylık %", "Toplam (ST) Yıllık %",
         "Konut Fiyat Endeksi", "Konut Fiyat Endeksi Aylık %", "Konut Fiyat Endeksi Yıllık %",
         "Konut Fiyat Endeksi Reel Aylık %", "Konut Fiyat Endeksi Reel Yıllık %",
     ]
@@ -509,3 +511,31 @@ elif sayfa == "📈 Enflasyon ve Para Arzı":
         data=csv_konut, file_name="m2_konut_fiyat_endeksi.csv", mime="text/csv",
         key="konut_csv_indir"
     )
+
+    st.markdown("---")
+
+    # --- YILLIK DEĞİŞİM GRAFİĞİ (TÜFE, M2, KFE, Toplam ST) ---
+    st.markdown("### 📈 Yıllık Değişim Karşılaştırması")
+    fig_yillik = go.Figure()
+    yillik_seriler = [
+        ("TÜFE Yıllık %",                "TÜFE",                "#ff6b8a"),
+        ("M2 Para Arzı Yıllık %",        "M2 Para Arzı",        "#64ffda"),
+        ("Konut Fiyat Endeksi Yıllık %", "Konut Fiyat Endeksi", "#f7c59f"),
+        ("Toplam (ST) Yıllık %",         "Toplam (ST)",         "#c77dff"),
+    ]
+    for kolon, isim, renk in yillik_seriler:
+        seri = df[["Tarih", kolon]].dropna()
+        fig_yillik.add_trace(go.Scatter(
+            x=seri["Tarih"], y=seri[kolon],
+            name=isim, line=dict(color=renk, width=2.2)
+        ))
+    fig_yillik.update_layout(
+        paper_bgcolor="#1e2130", plot_bgcolor="#1e2130",
+        font=dict(color="#8892b0"),
+        xaxis=dict(gridcolor="#2d3250"),
+        yaxis=dict(gridcolor="#2d3250", tickformat=".0%"),
+        legend=dict(bgcolor="#1e2130"),
+        margin=dict(l=10, r=10, t=30, b=10),
+        height=450
+    )
+    st.plotly_chart(fig_yillik, use_container_width=True)
